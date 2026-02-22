@@ -1,6 +1,5 @@
 package com.project.authentication_system.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -13,10 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserRequestDTO {
-
-    @NotBlank(message = "Username cannot be empty")
-    private String username;
+public class LoginRequestDTO {
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must contain at least 8 characters")

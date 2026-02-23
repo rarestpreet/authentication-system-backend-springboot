@@ -2,7 +2,7 @@ package com.project.authentication_system.service;
 
 import com.project.authentication_system.entity.CustomUserDetails;
 import com.project.authentication_system.entity.User;
-import com.project.authentication_system.exception.UserEmailNotFoundException;
+import com.project.authentication_system.exception.UserNotFoundException;
 import com.project.authentication_system.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
@@ -22,7 +22,7 @@ public @NullMarked class UserDetailService implements UserDetailsService {
 
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() ->
-                        new UserEmailNotFoundException("No user found with the email"));
+                        new UserNotFoundException("No user found with the email"));
 
         return new CustomUserDetails(user);
     }

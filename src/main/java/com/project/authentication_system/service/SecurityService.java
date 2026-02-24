@@ -23,6 +23,7 @@ public class SecurityService {
     private final AuthenticationManager authenticationManager;
     private final UserRepo userRepo;
     private final JWTService jwtService;
+    private final EmailService emailService;
 
     @Transactional
     public UserResponseDTO registerUser(RegisterRequestDTO registerRequestDTO) {
@@ -36,6 +37,7 @@ public class SecurityService {
         );
 
         User savedUser = userRepo.save(newUser);
+        emailService.sendMail(newUser.getEmail(), newUser.getUsername());
 
         return UserMapper.toDTO(savedUser);
     }

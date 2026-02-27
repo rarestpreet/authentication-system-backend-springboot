@@ -17,13 +17,13 @@ public class EmailService {
     private String senderMail;
 
     @Async
-    public void sendMail(String receiverMail, String name) {
+    public void sendWelcomeMail(String receiverMail, String name) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
 
         mailMessage.setTo(receiverMail);
+        mailMessage.setFrom(senderMail);
         mailMessage.setSubject("Welcome to our platform");
         mailMessage.setText("Hello, " + name + ", \n\nThanks for registering with us!");
-        mailMessage.setFrom(senderMail);
 
         mailSender.send(mailMessage);
     }
@@ -36,7 +36,18 @@ public class EmailService {
         mailMessage.setFrom(senderMail);
         mailMessage.setSubject("Password Reset OTP");
         mailMessage.setText(otp+" is your otp for resetting your password.");
+
+        mailSender.send(mailMessage);
+    }
+
+    @Async
+    public void sendVerifyOtpEmail(String receiverMail, String otp) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+
+        mailMessage.setTo(receiverMail);
         mailMessage.setFrom(senderMail);
+        mailMessage.setSubject("Email verification OTP");
+        mailMessage.setText(otp+" is your otp for verifying your email.");
 
         mailSender.send(mailMessage);
     }

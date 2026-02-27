@@ -3,10 +3,10 @@ package com.project.authentication_system.controller;
 import com.project.authentication_system.dto.request.LoginRequestDTO;
 import com.project.authentication_system.dto.request.RegisterRequestDTO;
 import com.project.authentication_system.dto.request.ResetPassRequestDTO;
+import com.project.authentication_system.dto.request.VerifyEmailRequestDTO;
 import com.project.authentication_system.dto.response.UserResponseDTO;
 import com.project.authentication_system.exception.InvalidOtpException;
 import com.project.authentication_system.service.SecurityService;
-import com.project.authentication_system.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class SecurityController {
 
     private final SecurityService securityService;
-    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
@@ -58,17 +57,32 @@ public class SecurityController {
 
     @GetMapping("/send-reset-otp")
     public ResponseEntity<?> sendResetOtp(@RequestParam String email) {
-        userService.sendPasswordResetOtp(email);
+        securityService.sendPasswordResetOtp(email);
         return ResponseEntity.status(HttpStatus.OK).body("Reset OTP has been sent");
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPassRequestDTO resetPassRequestDTO) throws InvalidOtpException {
-        userService.resetUserPassword(resetPassRequestDTO.getEmail(),
+        securityService.resetUserPassword(resetPassRequestDTO.getEmail(),
                 resetPassRequestDTO.getOtp(),
                 resetPassRequestDTO.getPassword()
         );
 
         return ResponseEntity.status(HttpStatus.OK).body("Password changed successfully");
+    }
+
+    @GetMapping("/send-verify-otp")
+    public ResponseEntity<?> sendVerifyOtp(Authentication authentication) {
+        securityService.sendEmailVerifyOtp(authentication.getName());
+        return ResponseEntity.status(HttpStatus.OK).body("Email verification OTP has been sent");
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) throws InvalidOtpException {
+        securityService.verifyUserEmail(
+                verifyEmailRequestDTO.getEmail(),
+                verifyEmailRequestDTO.getOtp()
+        );
+        return ResponseEntity.status(HttpStatus.OK).body("Email verified successfully");
     }
 }

@@ -6,9 +6,7 @@ import com.project.authentication_system.dto.response.UserResponseDTO;
 import com.project.authentication_system.entity.User;
 import com.project.authentication_system.exception.EmailAlreadyExistException;
 import com.project.authentication_system.exception.InvalidOtpException;
-import com.project.authentication_system.exception.UserNotFoundException;
 import com.project.authentication_system.mapper.UserMapper;
-import com.project.authentication_system.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,13 +23,12 @@ public class SecurityService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final UserRepo userRepo;
     private final JWTService jwtService;
     private final EmailService emailService;
 
     @Transactional
     public UserResponseDTO registerUser(RegisterRequestDTO registerRequestDTO) {
-        if (userRepo.existsByEmail(registerRequestDTO.getEmail())) {
+        if (userService.userExist(registerRequestDTO)) {
             throw new EmailAlreadyExistException("Email already exists");
         }
 

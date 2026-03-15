@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/authen_app?allowPublicKeyRetrieval=true&useSSL=false&autoReconnect=true
+    username: root
+    password: passIs1234
+    hikari:
+      initialization-fail-timeout: 6000
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true

@@ -10,7 +10,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -18,12 +17,13 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<?> getUserProfile(Authentication authentication) throws UserNotLoggedException {
+        System.out.println(authentication);
         if(authentication==null ||
                 authentication instanceof AnonymousAuthenticationToken){
             throw new UserNotLoggedException("No logged in user found");
         }
         return ResponseEntity
-                .status(HttpStatus.FOUND)
+                .status(HttpStatus.OK)
                 .body(userService.getUserProfile(authentication.getName()));
     }
 }

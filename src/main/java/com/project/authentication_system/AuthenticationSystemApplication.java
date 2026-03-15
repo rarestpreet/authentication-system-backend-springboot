@@ -9,7 +9,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 public class AuthenticationSystemApplication {
 
     public static void main(String[] args) {
+        System.getenv("BASE_PATH");
         SpringApplication.run(AuthenticationSystemApplication.class, args);
+
     }
 
 }

@@ -1,9 +1,11 @@
 package com.project.authentication_system.filter;
 
-import com.project.authentication_system.service.JWTService;
+import com.project.authentication_system.exception.TokenExpiredException;
+import com.project.authentication_system.service.JwtService;
 import com.project.authentication_system.service.UserDetailService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +24,22 @@ import java.io.IOException;
 public @NullMarked class JwtFilter extends OncePerRequestFilter {
 
     private final UserDetailService userDetailService;
-    private final JWTService jwtService;
+    private final JwtService jwtService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
-        final String authHeader = request.getHeader("Authorization");
-
         String token = null;
         String email = null;
 
-        if(authHeader!=null && authHeader.startsWith("Bearer ")){
-            token = authHeader.replace("Bearer ", "");
+        if(request.getCookies() != null) {
+            for(Cookie cookie : request.getCookies()) {
+                if(cookie.getName().equals("jwt")) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if(token != null) {
             email = jwtService.extractEmail(token);
         }
 
@@ -54,6 +60,7 @@ public @NullMarked class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-        doFilter(request, response, filterChain);
+
+        filterChain.doFilter(request, response);
     }
 }

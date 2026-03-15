@@ -23,7 +23,7 @@ public class SecurityService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final JWTService jwtService;
+    private final JwtService jwtService;
     private final EmailService emailService;
 
     @Transactional

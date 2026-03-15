@@ -96,4 +96,15 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<?> handleTokenExpiredException(TokenExpiredException ex) {
+        ExceptionResponse response = ExceptionResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .httpStatus(401)
+                .error("Token expired")
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
 }

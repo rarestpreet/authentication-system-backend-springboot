@@ -10,11 +10,11 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Service
-public class JWTService {
+public class JwtService {
 
     private final SecretKey secretkey;
 
-    public JWTService(@Value("${jwt.secret}")  String secretkey) {
+    public JwtService(@Value("${jwt.secret}")  String secretkey) {
         this.secretkey = Keys.hmacShaKeyFor(secretkey.getBytes());
     }
     public String generateToken(String email) {

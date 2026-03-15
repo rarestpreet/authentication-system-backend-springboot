@@ -6,6 +6,7 @@ import com.project.authentication_system.dto.request.ResetPassRequestDTO;
 import com.project.authentication_system.dto.request.VerifyEmailRequestDTO;
 import com.project.authentication_system.dto.response.UserResponseDTO;
 import com.project.authentication_system.exception.InvalidOtpException;
+import com.project.authentication_system.exception.UserNotLoggedException;
 import com.project.authentication_system.service.SecurityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,8 @@ public class SecurityController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
         UserResponseDTO userResponseDTO = securityService.registerUser(registerRequestDTO);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userResponseDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
     }
 
     @PostMapping("/login")
@@ -35,10 +37,10 @@ public class SecurityController {
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
-                .maxAge(60 * 60 * 1000)
-                .sameSite("Strict")
+                .maxAge(60*15)
+                .sameSite("Lax")
                 .build();
 
         return ResponseEntity.ok()
@@ -52,12 +54,14 @@ public class SecurityController {
                 authentication instanceof AnonymousAuthenticationToken) {
             return ResponseEntity.status(HttpStatus.OK).body(true);
         }
+
         return ResponseEntity.status(HttpStatus.OK).body(authentication.getName()!=null);
     }
 
-    @GetMapping("/send-reset-otp")
+    @PostMapping("/send-reset-otp")
     public ResponseEntity<?> sendResetOtp(@RequestParam String email) {
         securityService.sendPasswordResetOtp(email);
+
         return ResponseEntity.status(HttpStatus.OK).body("Reset OTP has been sent");
     }
 
@@ -74,15 +78,37 @@ public class SecurityController {
     @GetMapping("/send-verify-otp")
     public ResponseEntity<?> sendVerifyOtp(Authentication authentication) {
         securityService.sendEmailVerifyOtp(authentication.getName());
+
         return ResponseEntity.status(HttpStatus.OK).body("Email verification OTP has been sent");
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) throws InvalidOtpException {
+    public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO,
+                                         Authentication authentication) throws InvalidOtpException, UserNotLoggedException {
+        if(authentication==null ||
+        authentication instanceof AnonymousAuthenticationToken) {
+            throw new UserNotLoggedException("User not logged in");
+        }
+
         securityService.verifyUserEmail(
-                verifyEmailRequestDTO.getEmail(),
+                authentication.getName(),
                 verifyEmailRequestDTO.getOtp()
         );
+
         return ResponseEntity.status(HttpStatus.OK).body("Email verified successfully");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body("Logged out");
     }
 }

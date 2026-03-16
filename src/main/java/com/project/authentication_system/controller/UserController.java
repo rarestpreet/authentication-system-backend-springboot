@@ -17,11 +17,12 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<?> getUserProfile(Authentication authentication) throws UserNotLoggedException {
-        System.out.println(authentication);
+
         if(authentication==null ||
                 authentication instanceof AnonymousAuthenticationToken){
             throw new UserNotLoggedException("No logged in user found");
         }
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(userService.getUserProfile(authentication.getName()));

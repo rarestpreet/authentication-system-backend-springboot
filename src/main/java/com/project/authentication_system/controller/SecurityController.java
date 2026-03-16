@@ -37,7 +37,7 @@ public class SecurityController {
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .maxAge(60*15)
                 .sameSite("Lax")
@@ -106,6 +106,8 @@ public class SecurityController {
                 .path("/")
                 .maxAge(0)
                 .build();
+
+        System.out.println(cookie.toString());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())

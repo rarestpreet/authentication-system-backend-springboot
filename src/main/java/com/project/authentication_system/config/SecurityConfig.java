@@ -60,7 +60,7 @@ public class SecurityConfig {
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration
-                .setAllowedOrigins(List.of("http://localhost:5173"));
+                .setAllowedOrigins(List.of("https://authify-n8yi.onrender.com", "http://localhost:5173/"));
         corsConfiguration
                 .setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfiguration

@@ -40,7 +40,7 @@ public class SecurityController {
                 .secure(true)
                 .path("/")
                 .maxAge(60*15)
-                .sameSite("Lax")
+                .sameSite("none")
                 .build();
 
         return ResponseEntity.ok()
@@ -102,8 +102,9 @@ public class SecurityController {
     public ResponseEntity<?> logout() {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
+                .sameSite("none")
                 .maxAge(0)
                 .build();
 

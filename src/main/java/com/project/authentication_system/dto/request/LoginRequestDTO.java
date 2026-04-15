@@ -1,26 +1,22 @@
 package com.project.authentication_system.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Setter
 public class LoginRequestDTO {
 
+    @Schema(description = "User's password", example = "Password@123")
     @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must contain at least 8 characters")
     private String password;
 
-    @Pattern(
-            regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
-            message = "Email must be valid"
-    )
+    @Schema(description = "User's email address", example = "user@example.com")
+    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", message = "Email must be valid")
     private String email;
 }

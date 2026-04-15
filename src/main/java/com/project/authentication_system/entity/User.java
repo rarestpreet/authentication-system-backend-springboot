@@ -1,44 +1,44 @@
 package com.project.authentication_system.entity;
 
+import com.project.authentication_system.entity.enums.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.*;
 
-import java.sql.Timestamp;
+import java.sql.ConnectionBuilder;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user_entity")
 @Builder
-public class User {
+public class User extends BaseEntity {
 
-    @Id
-    @Column(unique = true)
-    private String userId;
-
+    @Column(nullable = false)
     private String username;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(unique = true)
     private String email;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private List<Role> roles = new ArrayList<>(List.of(Role.USER));
+
     private String verifyOtp;
-    private Boolean isAccountVerified;
     private Long verifyOtpExpireAt;
 
     private String resetOtp;
     private Long resetOtpExpireAt;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private Timestamp createdAt;
+    private Boolean isAccountVerified;
 
-    @UpdateTimestamp
-    private Timestamp updatedAt;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Todo> tasks = new ArrayList<>();
 }

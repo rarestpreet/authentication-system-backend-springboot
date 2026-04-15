@@ -23,9 +23,15 @@ spring:
 jwt:
   secret: ${SECRET_KEY}
 
+springdoc:
+  swagger-ui:
+    path: /docs
+
 server:
   servlet:
-    context-path: /api
-
+    context-path: /api/v1
   port: ${PORT:8080}
 
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{requestMethod} %X{requestURI}] %-5level %logger - %msg%n"

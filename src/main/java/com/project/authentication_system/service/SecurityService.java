@@ -1,5 +1,6 @@
 package com.project.authentication_system.service;
 
+import com.project.authentication_system.config.CookieProperties;
 import com.project.authentication_system.dto.request.LoginRequestDTO;
 import com.project.authentication_system.dto.request.RegisterRequestDTO;
 import com.project.authentication_system.dto.response.UserResponseDTO;
@@ -7,10 +8,16 @@ import com.project.authentication_system.entity.User;
 import com.project.authentication_system.exception.EmailAlreadyExistException;
 import com.project.authentication_system.exception.InvalidOtpException;
 import com.project.authentication_system.mapper.UserMapper;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,35 +30,40 @@ public class SecurityService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final HttpServletRequest httpServletRequest;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final CookieProperties cookieProperties;
 
     @Transactional
-    public UserResponseDTO registerUser(RegisterRequestDTO registerRequestDTO) {
+    public void registerUser(RegisterRequestDTO registerRequestDTO) {
         if (userService.userExist(registerRequestDTO)) {
             throw new EmailAlreadyExistException("Email already exists");
         }
 
         User newUser = UserMapper.toEntity(registerRequestDTO);
         newUser.setPassword(
-                passwordEncoder.encode(registerRequestDTO.getPassword())
-        );
+                passwordEncoder.encode(registerRequestDTO.getPassword()));
 
         userService.saveUserDetails(newUser);
         emailService.sendWelcomeMail(newUser.getEmail(), newUser.getUsername());
-
-        return UserMapper.toDTO(userService.getUserDetails(newUser.getEmail()));
     }
 
-    public String authenticateUser(LoginRequestDTO loginRequestDTO) {
+    public ResponseCookie authenticateUser(LoginRequestDTO loginRequestDTO) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequestDTO.getEmail(), loginRequestDTO.getPassword()
-                )
-        );
+                        loginRequestDTO.getEmail(), loginRequestDTO.getPassword()));
 
-        return jwtService.generateToken(loginRequestDTO.getEmail());
+        String token = jwtService.generateToken(loginRequestDTO.getEmail());
+
+        return ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(cookieProperties.isSecure())
+                .path("/")
+                .maxAge(60 * 15)
+                .sameSite(cookieProperties.getSameSite())
+                .build();
     }
 
     public void sendPasswordResetOtp(String email) {
@@ -65,7 +77,7 @@ public class SecurityService {
         userService.saveUserDetails(currentUser);
 
         try {
-            emailService.sendPassRestOtpEmail(email, otp);
+            emailService.sendPassResetOtpEmail(email, otp);
         } catch (Exception e) {
             throw new RuntimeException("Unable to send email. Try again later.");
         }
@@ -77,7 +89,7 @@ public class SecurityService {
         return String.valueOf(otp);
     }
 
-    public void resetUserPassword(String email, String otp, String password) throws InvalidOtpException {
+    public ResponseCookie resetUserPassword(String email, String otp, String password) throws InvalidOtpException {
         User currentUser = userService.getUserDetails(email);
 
         if (currentUser.getResetOtp() == null ||
@@ -94,6 +106,8 @@ public class SecurityService {
         currentUser.setResetOtp(null);
 
         userService.saveUserDetails(currentUser);
+
+        return clearedCookie();
     }
 
     public void sendEmailVerifyOtp(String email) {
@@ -117,12 +131,12 @@ public class SecurityService {
     public void verifyUserEmail(String email, String otp) throws InvalidOtpException {
         User currentUser = userService.getUserDetails(email);
 
-        if(currentUser.getVerifyOtp() == null ||
+        if (currentUser.getVerifyOtp() == null ||
                 !passwordEncoder.matches(otp, currentUser.getVerifyOtp())) {
             throw new InvalidOtpException("Please provide the Otp sent on your mail.");
         }
 
-        if(currentUser.getVerifyOtpExpireAt() < System.currentTimeMillis()) {
+        if (currentUser.getVerifyOtpExpireAt() < System.currentTimeMillis()) {
             throw new InvalidOtpException("Otp expired, please create a new one.");
         }
 
@@ -131,5 +145,25 @@ public class SecurityService {
         currentUser.setVerifyOtp(null);
 
         userService.saveUserDetails(currentUser);
+    }
+
+    public ResponseCookie terminateSession() {
+        HttpSession session = httpServletRequest.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
+
+        return clearedCookie();
+    }
+
+    public ResponseCookie clearedCookie() {
+        return ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(cookieProperties.isSecure())
+                .path("/")
+                .sameSite(cookieProperties.getSameSite())
+                .maxAge(0)
+                .build();
     }
 }

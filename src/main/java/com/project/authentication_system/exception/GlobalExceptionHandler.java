@@ -1,6 +1,10 @@
 package com.project.authentication_system.exception;
 
 import com.project.authentication_system.dto.response.ExceptionResponse;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,10 +17,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
+@NullMarked
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistException.class)
-    public ResponseEntity<?> handleEmailAlreadyExistException(EmailAlreadyExistException ex) {
+    public ResponseEntity<ExceptionResponse> handleEmailAlreadyExistException(EmailAlreadyExistException ex) {
+        log.warn("Registration failed: {}", ex.getMessage());
 
         ExceptionResponse response = ExceptionResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -29,7 +36,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ExceptionResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        log.warn("Validation failed: {}", ex.getMessage());
 
         Map<String, String> errors = new HashMap<>();
 
@@ -48,7 +56,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex) {
+    public ResponseEntity<ExceptionResponse> handleUserNotFoundException(UserNotFoundException ex) {
+        log.warn("User retrieval failed: {}", ex.getMessage());
 
         ExceptionResponse response = ExceptionResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -62,6 +71,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> handleBadCredentialsException(Exception ex) {
+        log.warn("Authentication failed: {}", ex.getMessage());
 
         ExceptionResponse response = ExceptionResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -74,11 +84,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserNotLoggedException.class)
-    public ResponseEntity<?> handleUserNotLoggedException(UserNotLoggedException ex) {
+    public ResponseEntity<ExceptionResponse> handleUserNotLoggedException(UserNotLoggedException ex) {
+        log.warn("Requires authentication: {}", ex.getMessage());
+
         ExceptionResponse response = ExceptionResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .httpStatus(401)
-                .error("Authentication Failed")
+                .error("Unauthorized access")
                 .message(ex.getMessage())
                 .build();
 
@@ -86,7 +98,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidOtpException.class)
-    public ResponseEntity<?> handleInvalidOtpException(InvalidOtpException ex) {
+    public ResponseEntity<ExceptionResponse> handleInvalidOtpException(InvalidOtpException ex) {
+        log.warn("Otp verification failed: {}", ex.getMessage());
+
         ExceptionResponse response = ExceptionResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .httpStatus(400)
@@ -98,7 +112,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TokenExpiredException.class)
-    public ResponseEntity<?> handleTokenExpiredException(TokenExpiredException ex) {
+    public ResponseEntity<ExceptionResponse> handleTokenExpiredException(TokenExpiredException ex) {
+        log.warn("Token expired: {}", ex.getMessage());
+
         ExceptionResponse response = ExceptionResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .httpStatus(401)
@@ -106,5 +122,35 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<ExceptionResponse> handleInvalidOperationException(
+            InvalidOperationException ex) {
+        log.warn("Invalid operation requested: {}", ex.getMessage());
+
+        ExceptionResponse response = ExceptionResponse.builder()
+                .httpStatus(403)
+                .error("Invalid operation")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionResponse> handleException(
+            Exception ex) {
+        log.warn("Request failed: {}", ex.getMessage());
+
+        ExceptionResponse response = ExceptionResponse.builder()
+                .httpStatus(500)
+                .error("Request failed")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }

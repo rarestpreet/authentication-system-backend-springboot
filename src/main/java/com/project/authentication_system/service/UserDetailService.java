@@ -2,6 +2,7 @@ package com.project.authentication_system.service;
 
 import com.project.authentication_system.entity.CustomUserDetails;
 import com.project.authentication_system.entity.User;
+import com.project.authentication_system.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,13 +13,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public @NullMarked class UserDetailService implements UserDetailsService {
-
-
-    private final UserService userService;
+    private final UserRepo userRepo;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userService.getUserDetails(email);
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(email));
 
         return new CustomUserDetails(user);
     }
